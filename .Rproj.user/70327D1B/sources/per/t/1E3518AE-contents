@@ -1,0 +1,128 @@
+data {
+  // Metadata
+  int N;          // no. of participants
+  int T;          // no. trials
+  int n_options;  // no. of options
+  
+  // Indices
+  array[4] int all_options; // indices of decks 1, 2, 3, 4: for looping through weight assoc. with each deck
+  array[T] int p_ix; // Participant number for each datapoint
+ 
+  // Data
+  array[T] real gain;      // amount gained on trial t
+  array[T] real loss;      // amount lost on trial t 
+  array[T] int trial_no; // Trial number
+  array[T] int actions;  // Choice of deck 1, 2, 3 or 4
+}
+
+transformed data{
+     
+}
+
+parameters{
+   // Participant level priors
+   vector[N] theta_pr;  // value sensitivity
+   vector[N] gamma_pr;  // decay rate
+   vector[N] phi_pr;    // exploration bonus
+   vector[N] eta_pr;    // learning rate (exploration update)
+   vector[N] beta_pr;   // inverse temperature
+}
+
+transformed parameters{
+   vector[N] theta = Phi_approx(theta_pr);      // value sensitivity
+   vector[N] gamma = Phi_approx(gamma_pr);      // decay rate
+   vector[N] phi   = phi_pr;                    // exploration bonus
+   vector[N] eta   = Phi_approx(eta_pr);        // learning rate (exploration update)
+   vector[N] beta  = Phi_approx(beta_pr) * 5;   // inverse temperature
+   vector[N] C     = pow(3, beta) - 1;          // consistency (transformed from beta)
+}
+
+model{
+   
+   // Specify priors ------------------------- //
+   
+   // Participant level priors
+   theta_pr  ~ normal(0, 2);
+   gamma_pr  ~ normal(0, 2);
+   phi_pr    ~ normal(0, 2);
+   eta_pr    ~ normal(0, 2);
+   beta_pr   ~ normal(0, 2);
+
+   // containers
+   vector[n_options] exploit;       // exploitation weight of each deck
+   vector[n_options] explore;       // exploration weight of each deck
+   vector[n_options] choice_weight; // softmax choice weight of each deck
+   
+   real vt;                         // Value of chosen deck at trial t
+   vector[T] choice_log_lik;        // container for choice log likelihoods
+   vector[T] choice_pred;           // container for choice predictions
+
+   // fill utilities with calculated options
+   for (trial_ix in 1:T){
+     
+      // intialise exploit explore for a new session
+      if (trial_no[trial_ix] == 1){
+        exploit = rep_vector(0, n_options);
+        explore = rep_vector(phi[p_ix[trial_ix]], n_options);
+      }
+      
+      // Update exploitation & exploration weights
+      vt = pow(gain[trial_ix], theta[p_ix[trial_ix]]) - pow(loss[trial_ix], theta[p_ix[trial_ix]]);
+      for (i in all_options){
+         if (i == actions[trial_ix]){
+            exploit[i] = (exploit[i] * gamma[p_ix[trial_ix]]) + vt;
+            explore[i] = 0;
+         } else {
+            exploit[i] = exploit[i] * gamma[p_ix[trial_ix]];
+            explore[i] += eta[p_ix[trial_ix]] * (phi[p_ix[trial_ix]] - explore[i]);
+         }
+         
+         // calculate softmax choice weight for each deck
+         choice_weight[i] = explore[i] + exploit[i];
+      }
+      
+      // Specify probability
+      actions[trial_ix] ~ categorical_logit(C[p_ix[trial_ix]] * choice_weight);
+   }
+}
+
+generated quantities {
+   // containers
+   vector[n_options] exploit;       // exploitation weight of each deck
+   vector[n_options] explore;       // exploration weight of each deck
+   vector[n_options] choice_weight; // softmax choice weight of each deck
+   
+   real vt;                         // Value of chosen deck at trial t
+   vector[T] choice_log_lik;        // container for choice log likelihoods
+   vector[T] choice_pred;           // container for choice predictions
+
+   // fill utilities with calculated options
+   for (trial_ix in 1:T){
+     
+      // intialise exploit explore for a new session
+      if (trial_no[trial_ix] == 1){
+        exploit = rep_vector(0, n_options);
+        explore = rep_vector(phi[p_ix[trial_ix]], n_options);
+      }
+      
+      // Update exploitation & exploration weights
+      vt = pow(gain[trial_ix], theta[p_ix[trial_ix]]) - pow(loss[trial_ix], theta[p_ix[trial_ix]]);
+      for (i in all_options){
+         if (i == actions[trial_ix]){
+            exploit[i] = (exploit[i] * gamma[p_ix[trial_ix]]) + vt;
+            explore[i] = 0;
+         } else {
+            exploit[i] = exploit[i] * gamma[p_ix[trial_ix]];
+            explore[i] += eta[p_ix[trial_ix]] * (phi[p_ix[trial_ix]] - explore[i]);
+         }
+         
+         // calculate softmax choice weight for each deck
+         choice_weight[i] = explore[i] + exploit[i];
+      }
+      
+      // Choice log likelihood (lpmf = log probability mass function)
+      choice_log_lik[trial_ix] = categorical_logit_lpmf(actions[trial_ix] | choice_weight*C[p_ix[trial_ix]]);
+      // Choice predictions
+      choice_pred[trial_ix] = categorical_logit_rng(choice_weight * C[p_ix[trial_ix]]); 
+   }
+}

@@ -1,0 +1,124 @@
+# Load required packages
+require(ggplot2)
+require(hrbrthemes)
+require(plotrix)
+require(data.table)
+
+# Read csv with trial-level data
+load(here::here("data", "actual", "Killgore2007_GUM4", "Killgore2007_GUM4_merged.Rdata"))
+
+# Read csv with modelled parameter data
+igt_data.pars <- as.data.table(read.csv(here::here("data/actual/Killgore2007_GUM4", "Killgore2007_GUM4_with_parameters.csv")))
+
+igt_data.pars[67, "session"] <- 3
+igt_data.pars$session <- factor(igt_data.pars$session, levels = c(1, 2, 3), labels = c("Baseline", "51h TSD", "75h TSD"))
+
+# Plot choices for one participant in one session -----------------------
+pt_ix <- sample(unique(igt_data$PtID), size = 1)
+sesh_ix <- sample(unique(igt_data[PtID==pt_ix]$session), size = 1)
+
+## Subset participant's trial data
+pt_subset <- igt_data[PtID==pt_ix & session==sesh_ix]
+
+ggplot(data = pt_subset, aes(x = Trial, y = choice)) +
+  geom_line(alpha =.5) + geom_point(size = 2,  aes(color = factor(choice))) +  
+  ggpubr::theme_pubr()+ 
+  scale_fill_manual(values=c( "#9999CC", "#999999", "red", "green"))+
+  guides(color = "none") + 
+  labs(title = paste("Choices for subject", pt_ix, "in Session", sesh_ix), x = "Trial", y = "Choice") +
+  theme(axis.title.x = element_text(size = 14), axis.title.y = element_text(size = 14)) 
+
+
+choice_chart <- ggplot(data = pt_subset, aes(x = Trial, y = choice)) +
+  geom_line(alpha =.5) + geom_point(size = 2,  aes(color = factor(choice))) +  
+  ggpubr::theme_pubr()+ 
+  scale_fill_manual(values=c( "#9999CC", "#999999", "red", "green"))+
+  guides(color = "none") + 
+  labs(title = paste("Choices for subject", pt_ix, "in Session", sesh_ix), x = "Trial", y = "Choice") +
+  theme(axis.title.x = element_text(size = 14), axis.title.y = element_text(size = 14)) 
+
+
+
+# Parameter value boxplots ------------------------------------------------
+
+## Theta
+plot.VSE.theta <- ggplot(data = igt_data.pars[!is.na(drug)], aes(x = session, y = VSE_theta,  fill = factor(drug))) +
+  geom_boxplot(outlier.shape = NA) + 
+  geom_point(aes(shape = factor(drug)), position = position_jitterdodge(dodge.width = .75), size = 1.5) +
+  scale_shape_manual(values = c(15, 16)) +
+  ggpubr::theme_pubr()+ 
+  labs(title = "Value Sensitivity", fill = "Drug group", shape = "Drug group",  x = "Session", y = "θ")
+## Gamma
+plot.VSE.gamma <- ggplot(data = igt_data.pars[!is.na(drug)], aes(x = session, y = VSE_gamma,  fill = factor(drug))) +
+  geom_boxplot(outlier.shape = NA) + 
+  geom_point(aes(shape = factor(drug)), position = position_jitterdodge(dodge.width = .75), size = 1.5) +
+  scale_shape_manual(values = c(15, 16)) +
+  ggpubr::theme_pubr()+
+  labs(title = "Decay Rate", fill = "Drug group", shape = "Drug group", x = "Session", y = "γ")
+## Phi
+plot.VSE.phi <- ggplot(data = igt_data.pars[!is.na(drug)], aes(x = session, y = VSE_phi,  fill = factor(drug))) +
+  geom_boxplot(outlier.shape = NA) + 
+  geom_point(aes(shape = factor(drug)), position = position_jitterdodge(dodge.width = .75), size = 1.5) +
+  scale_shape_manual(values = c(15, 16)) +
+  ggpubr::theme_pubr()+
+  labs(title = "Exploration Bonus", fill = "Drug group", shape = "Drug group", x = "Session", y = "φ")
+## Eta
+plot.VSE.eta <- ggplot(data = igt_data.pars[!is.na(drug)], aes(x = session, y = VSE_eta,  fill = factor(drug))) +
+  geom_boxplot(outlier.shape = NA) + 
+  geom_point(aes(shape = factor(drug)), position = position_jitterdodge(dodge.width = .75), size = 1.5) +
+  scale_shape_manual(values = c(15, 16)) +
+  ggpubr::theme_pubr() + 
+  labs(title = "Exploration Update", fill = "Drug group", shape = "Drug group", x = "Session", y = "η")
+## C
+plot.VSE.C <- ggplot(data = igt_data.pars[!is.na(drug)], aes(x = session, y = VSE_C,  fill = factor(drug))) +
+  geom_boxplot(outlier.shape = NA) + 
+  geom_point(aes(shape = factor(drug)), position = position_jitterdodge(dodge.width = .75), size = 1.5) +
+  scale_shape_manual(values = c(15, 16)) +
+  ggpubr::theme_pubr() + 
+  labs(title = "Consistency", fill = "Drug group", shape = "Drug group", x = "Session", y = "C")
+
+ggpubr::ggarrange(plot.VSE.theta, plot.VSE.gamma, plot.VSE.phi, plot.VSE.eta, plot.VSE.C
+                  , ncol = 3, nrow = 2, common.legend = T)
+
+
+
+# Plots of models without interaction (just session predictor) ------------
+color_palette <- c("#62BEC1", "#FFE1A8", "#E26D5C")
+
+plot.VSE.theta <- ggplot(data = igt_data.pars, aes(x = session, y = VSE_theta, fill = session)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_point(position = position_jitterdodge(jitter.width = .3), size = 1.5, alpha = .6) +
+  scale_fill_manual(values = color_palette) + 
+  ggpubr::theme_pubr()+ 
+  guides(fill = "none") + 
+  labs(title = "Value Sensitivity", x = "Session", y = "θ", fill = "Session")
+plot.VSE.gamma <- ggplot(data = igt_data.pars, aes(x = session, y = VSE_gamma, fill = session)) +
+  geom_boxplot(outlier.shape = NA) + 
+  geom_point(position = position_jitterdodge(jitter.width = .3), size = 1.5, alpha = .6) +
+  scale_fill_manual(values = color_palette) + 
+  ggpubr::theme_pubr()+ 
+  guides(fill = "none") + 
+  labs(title = "Decay Rate", x = "Session", y = "γ", fill = "Session")
+plot.VSE.phi <- ggplot(data = igt_data.pars, aes(x = session, y = VSE_phi, fill = session)) +
+  geom_boxplot(outlier.shape = NA) + 
+  geom_point(position = position_jitterdodge(jitter.width = .3), size = 1.5, alpha = .6) +
+  scale_fill_manual(values = color_palette) + 
+  ggpubr::theme_pubr()+ 
+  guides(fill = "none") + 
+  labs(title = "Exploration Bonus", x = "Session", y = "φ", fill = "Session")
+plot.VSE.eta <- ggplot(data = igt_data.pars, aes(x = session, y = VSE_eta, fill = session)) +
+  geom_boxplot(outlier.shape = NA) + 
+  geom_point(position = position_jitterdodge(jitter.width = .3), size = 1.5, alpha = .6) +
+  scale_fill_manual(values = color_palette) + 
+  ggpubr::theme_pubr()+ 
+  guides(fill = "none") + 
+  labs(title = "Exploration Update", x = "Session", y = "η", fill = "Session")
+plot.VSE.C <- ggplot(data = igt_data.pars, aes(x = session, y = VSE_C, fill = session)) +
+  geom_boxplot(outlier.shape = NA) + 
+  geom_point(position = position_jitterdodge(jitter.width = .3), size = 1.5, alpha = .6) +
+  scale_fill_manual(values = color_palette) + 
+  ggpubr::theme_pubr()+ 
+  guides(fill = "none") + 
+  labs(title = "Consistency", x = "Session", y = "C", fill = "Session")
+
+ggpubr::ggarrange(plot.VSE.theta, plot.VSE.gamma, plot.VSE.phi, plot.VSE.eta, plot.VSE.C, ncol = 3, nrow = 2)
