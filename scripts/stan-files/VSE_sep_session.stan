@@ -57,6 +57,14 @@ model{
         exploit = rep_vector(0, n_options);
         explore = rep_vector(phi[p_ix[trial_ix]], n_options);
       }
+
+      for (i in all_options){
+         // calculate softmax choice weight for each deck
+         choice_weight[i] = explore[i] + exploit[i];
+      }
+
+      // Specify probability
+      actions[trial_ix] ~ categorical_logit(C[p_ix[trial_ix]] * choice_weight);
       
       // Update exploitation & exploration weights
       vt = pow(gain[trial_ix], theta[p_ix[trial_ix]]) - pow(loss[trial_ix], theta[p_ix[trial_ix]]);
@@ -69,13 +77,8 @@ model{
             exploit[i] = exploit[i] * gamma[p_ix[trial_ix]];
             explore[i] += eta[p_ix[trial_ix]] * (phi[p_ix[trial_ix]] - explore[i]);
          }
-         
-         // calculate softmax choice weight for each deck
-         choice_weight[i] = explore[i] + exploit[i];
       }
       
-      // Specify probability
-      actions[trial_ix] ~ categorical_logit(C[p_ix[trial_ix]] * choice_weight);
    }
 }
 
@@ -98,6 +101,16 @@ generated quantities {
         explore = rep_vector(phi[p_ix[trial_ix]], n_options);
       }
       
+      for (i in all_options){
+         // calculate softmax choice weight for each deck
+         choice_weight[i] = explore[i] + exploit[i];
+      }
+
+      // Choice log likelihood (lpmf = log probability mass function)
+      choice_log_lik[trial_ix] = categorical_logit_lpmf(actions[trial_ix] | choice_weight*C[p_ix[trial_ix]]);
+      // Choice predictions
+      choice_pred[trial_ix] = categorical_logit_rng(choice_weight * C[p_ix[trial_ix]]); 
+      
       // Update exploitation & exploration weights
       vt = pow(gain[trial_ix], theta[p_ix[trial_ix]]) - pow(loss[trial_ix], theta[p_ix[trial_ix]]);
       
@@ -109,14 +122,7 @@ generated quantities {
             exploit[i] = exploit[i] * gamma[p_ix[trial_ix]];
             explore[i] += eta[p_ix[trial_ix]] * (phi[p_ix[trial_ix]] - explore[i]);
          }
-         
-         // calculate softmax choice weight for each deck
-         choice_weight[i] = explore[i] + exploit[i];
       }
       
-      // Choice log likelihood (lpmf = log probability mass function)
-      choice_log_lik[trial_ix] = categorical_logit_lpmf(actions[trial_ix] | choice_weight*C[p_ix[trial_ix]]);
-      // Choice predictions
-      choice_pred[trial_ix] = categorical_logit_rng(choice_weight * C[p_ix[trial_ix]]); 
    }
 }
