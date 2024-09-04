@@ -4,10 +4,10 @@ require(lmerTest)
 require(blme)
 require(emmeans)
 require(dplyr)
+require(data.table)
 
 # Read csv data with modelled parameters
-igt_data.pars <- read.csv(here::here("data/actual/Killgore2007_GUM4", "Killgore2007_GUM4_with_parameters.csv"))
-igt_data.pars[67, "session"] <- 3
+igt_data.pars <- read.csv(here::here("data/actual/Killgore2007_GUM4", "Killgore2007_GUM4_with_parameters.csv")) %>% as.data.table()
 
 # VSE model ---------------------------------------------------------------
 
@@ -23,28 +23,28 @@ summary(igt_data.pars$VSE_eta); sd(igt_data.pars$VSE_eta)
 summary(igt_data.pars$VSE_C); sd(igt_data.pars$VSE_C)
 
 
-## Build Bayesian linear mixed models
-m.VSE.theta <- blmer(VSE_theta ~ 1 + session*drug + (1|PtID), data = igt_data.pars, fixef.prior = normal) # Value sensitivity
-m.VSE.gamma <- blmer(VSE_gamma ~ 1 + session*drug + (1|PtID), data = igt_data.pars, fixef.prior = normal) # Decay Rate
-m.VSE.eta   <- blmer(VSE_eta ~ 1 + session*drug + (1|PtID), data = igt_data.pars, fixef.prior = normal)   # Exploration Update
-m.VSE.phi   <- blmer(VSE_phi ~ 1 + session*drug + (1|PtID), data = igt_data.pars, fixef.prior = normal)   # Exploration Bonus
-m.VSE.C     <- blmer(VSE_C ~ 1 + session*drug + (1|PtID), data = igt_data.pars, fixef.prior = normal)     # Consistency
+## Build linear mixed models
+m.VSE.theta <- lmer(VSE_theta ~ 1 + session*drug + (1|PtID), data = igt_data.pars) # Value sensitivity
+m.VSE.gamma <- lmer(VSE_gamma ~ 1 + session*drug + (1|PtID), data = igt_data.pars) # Decay Rate
+m.VSE.eta   <- lmer(VSE_eta ~ 1 + session*drug + (1|PtID), data = igt_data.pars  )   # Exploration Update
+m.VSE.phi   <- lmer(VSE_phi ~ 1 + session*drug + (1|PtID), data = igt_data.pars  )   # Exploration Bonus
+m.VSE.C     <- lmer(VSE_C ~ 1 + session*drug + (1|PtID), data = igt_data.pars    )     # Consistency
 
 ## Interactions weren't significant, drop interaction term and just regress on session
-m.VSE.theta <- blmer(VSE_theta ~ 1 + session + (1|PtID), data = igt_data.pars, fixef.prior = normal) # Value sensitivity
-m.VSE.gamma <- blmer(VSE_gamma ~ 1 + session + (1|PtID), data = igt_data.pars, fixef.prior = normal) # Decay Rate
-m.VSE.eta   <- blmer(VSE_eta ~ 1 + session + (1|PtID), data = igt_data.pars, fixef.prior = normal)   # Exploration Update
-m.VSE.phi   <- blmer(VSE_phi ~ 1 + session + (1|PtID), data = igt_data.pars, fixef.prior = normal)   # Exploration Bonus
-m.VSE.C     <- blmer(VSE_C ~ 1 + session + (1|PtID), data = igt_data.pars, fixef.prior = normal)     # Consistency
+m.VSE.theta <- lmer(VSE_theta ~ 1 + session + (1|PtID), data = igt_data.pars) # Value sensitivity
+m.VSE.gamma <- lmer(VSE_gamma ~ 1 + session + (1|PtID), data = igt_data.pars) # Decay Rate
+m.VSE.eta   <- lmer(VSE_eta ~ 1 + session + (1|PtID), data = igt_data.pars  )   # Exploration Update
+m.VSE.phi   <- lmer(VSE_phi ~ 1 + session + (1|PtID), data = igt_data.pars  )   # Exploration Bonus
+m.VSE.C     <- lmer(VSE_C ~ 1 + session + (1|PtID), data = igt_data.pars    )     # Consistency
 
 sjPlot::tab_model(
   m.VSE.theta, m.VSE.gamma, 
-  digits = 3, title = "Value plus Sequential Exploration Model: Model Parameters regressed on Drug/Session Interactions",
+  digits = 3, string.ci = "95% CI", title = "Value plus Sequential Exploration Model: Model Parameters regressed on Drug/Session Interactions",
   dv.labels = c("Value Sensitivity", "Decay Rate")
 )
 sjPlot::tab_model(
    m.VSE.phi, m.VSE.eta, m.VSE.C,
-  digits = 3, title = "Value plus Sequential Exploration Model: Model Parameters regressed on Drug/Session Interactions",
+  digits = 3, string.ci = "95% CI", title = "Value plus Sequential Exploration Model: Model Parameters regressed on Drug/Session Interactions",
   dv.labels = c("Exploration Bonus","Exploration Update (Learning Rate)", "Consistency")
 )
 

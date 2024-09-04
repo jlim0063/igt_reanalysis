@@ -6,21 +6,21 @@ require(plotrix)
 require(data.table)
 require(extrafont)
 
-extrafont::loadfonts()
+# Load extra fonts
+loadfonts()
 
 # Read csv with trial-level data
 load(here::here("data", "actual", "Killgore2007_GUM4", "Killgore2007_GUM4_merged.Rdata"))
 
 # Read csv with modelled parameter data
 igt_data.pars <- as.data.table(read.csv(here::here("data/actual/Killgore2007_GUM4", "Killgore2007_GUM4_with_parameters.csv")))
-
-igt_data.pars[67, "session"] <- 3
 igt_data.pars$session <- factor(igt_data.pars$session, levels = c(1, 2, 3), labels = c("Baseline", "51h TSD", "75h TSD"))
+igt_data.pars$drug    <- as.factor(igt_data.pars$drug)
 
 ## Default text formatting and color palette for graphs
-default_text <- element_text(size = 16, family = "Averia Serif Libre Light")
+default_text       <- element_text(size = 16, family = "Averia Serif Libre Light")
+default_text.title <- element_text(size = 16, family = "Averia Serif Libre", face = "bold")
 color_palette <- c("#62BEC1", "#FFE1A8", "#E26D5C")
-
 
 # Plot choices for one participant in one session -----------------------
 pt_ix <- sample(unique(igt_data$PtID), size = 1)
@@ -45,66 +45,18 @@ choice_chart <- ggplot(data = pt_subset, aes(x = Trial, y = choice)) +
   labs(title = paste("Choices for subject", pt_ix, "in Session", sesh_ix), x = "Trial", y = "Choice") +
   theme(axis.title.x =default_text, axis.title.y =default_text) 
 
-# Parameter value boxplots ------------------------------------------------
 
-## Theta
-plot.VSE.theta <- ggplot(data = igt_data.pars[!is.na(drug)], aes(x = session, y = VSE_theta,  fill = factor(drug))) +
-  geom_boxplot(outlier.shape = NA) + 
-  geom_point(aes(shape = factor(drug)), position = position_jitterdodge(dodge.width = .75), size = 1.5) +
-  scale_shape_manual(values = c(15, 16)) +
-  ggpubr::theme_pubr()+ 
-  labs(title = "Value Sensitivity", fill = "Drug group", shape = "Drug group",  x = "Session", y = "θ")+
-  theme(axis.title.x =default_text, axis.title.y =default_text) 
 
-## Gamma
-plot.VSE.gamma <- ggplot(data = igt_data.pars[!is.na(drug)], aes(x = session, y = VSE_gamma,  fill = factor(drug))) +
-  geom_boxplot(outlier.shape = NA) + 
-  geom_point(aes(shape = factor(drug)), position = position_jitterdodge(dodge.width = .75), size = 1.5) +
-  scale_shape_manual(values = c(15, 16)) +
-  ggpubr::theme_pubr()+
-  labs(title = "Decay Rate", fill = "Drug group", shape = "Drug group", x = "Session", y = "γ")+
-  theme(axis.title.x =default_text, axis.title.y =default_text) 
-
-## Phi
-plot.VSE.phi <- ggplot(data = igt_data.pars[!is.na(drug)], aes(x = session, y = VSE_phi,  fill = factor(drug))) +
-  geom_boxplot(outlier.shape = NA) + 
-  geom_point(aes(shape = factor(drug)), position = position_jitterdodge(dodge.width = .75), size = 1.5) +
-  scale_shape_manual(values = c(15, 16)) +
-  ggpubr::theme_pubr()+
-  labs(title = "Exploration Bonus", fill = "Drug group", shape = "Drug group", x = "Session", y = "φ")+
-  theme(axis.title.x =default_text, axis.title.y =default_text) 
-
-## Eta
-plot.VSE.eta <- ggplot(data = igt_data.pars[!is.na(drug)], aes(x = session, y = VSE_eta,  fill = factor(drug))) +
-  geom_boxplot(outlier.shape = NA) + 
-  geom_point(aes(shape = factor(drug)), position = position_jitterdodge(dodge.width = .75), size = 1.5) +
-  scale_shape_manual(values = c(15, 16)) +
-  ggpubr::theme_pubr() + 
-  labs(title = "Exploration Update", fill = "Drug group", shape = "Drug group", x = "Session", y = "η")+
-  theme(axis.title.x =default_text, axis.title.y =default_text) 
-
-## C
-plot.VSE.C <- ggplot(data = igt_data.pars[!is.na(drug)], aes(x = session, y = VSE_C,  fill = factor(drug))) +
-  geom_boxplot(outlier.shape = NA) + 
-  geom_point(aes(shape = factor(drug)), position = position_jitterdodge(dodge.width = .75), size = 1.5) +
-  scale_shape_manual(values = c(15, 16)) +
-  ggpubr::theme_pubr() + 
-  labs(title = "Consistency", fill = "Drug group", shape = "Drug group", x = "Session", y = "C")+
-  theme(axis.title.x =default_text, axis.title.y =default_text) 
-
-ggpubr::ggarrange(plot.VSE.theta, plot.VSE.gamma, plot.VSE.phi, plot.VSE.eta, plot.VSE.C
-                  , ncol = 3, nrow = 2, common.legend = T)
-
-# Plots of models without interaction (just session predictor) ------------
+# Parameter value boxplots (w/o interactions) -----------------------------
 
 plot.VSE.theta <- ggplot(data = igt_data.pars, aes(x = session, y = VSE_theta, fill = session)) +
   geom_boxplot(width = .5, outlier.shape = NA) +
   geom_point(position = position_jitterdodge(jitter.width = .5), size = 1.5, alpha = .6) +
   scale_fill_manual(values = color_palette) + 
   ggpubr::theme_pubr()+ 
-  guides(fill = "none") + 
+  guides(fill = "none") + ylim(c(0, 1)) + 
   labs(title = "Value Sensitivity", x = "Session", y = "θ", fill = "Session") + 
-  theme(title =  element_text(size = 17, family = "Averia Serif Libre", face = "bold"),
+  theme(title = default_text.title,
         axis.title.x = default_text,
         axis.title.y = element_text(size = 16, family = "serif")
         ) 
@@ -114,21 +66,22 @@ plot.VSE.gamma <- ggplot(data = igt_data.pars, aes(x = session, y = VSE_gamma, f
   geom_point(position = position_jitterdodge(jitter.width = .5), size = 1.5, alpha = .6) +
   scale_fill_manual(values = color_palette) + 
   ggpubr::theme_pubr()+ 
-  guides(fill = "none") + 
+  guides(fill = "none") + ylim(c(0, 1)) + 
   labs(title = "Decay Rate", x = "Session", y = "γ", fill = "Session")+
-  theme(title =  element_text(size = 17, family = "Averia Serif Libre", face = "bold"),
+  theme(title = default_text.title,
         axis.title.x = default_text,
         axis.title.y = element_text(size = 16, family = "serif")
   ) 
 
 plot.VSE.phi <- ggplot(data = igt_data.pars, aes(x = session, y = VSE_phi, fill = session)) +
+  geom_hline(yintercept = 0, linetype = "dashed", alpha = .5) + 
   geom_boxplot(width = .5, outlier.shape = NA) + 
   geom_point(position = position_jitterdodge(jitter.width = .5), size = 1.5, alpha = .6) +
   scale_fill_manual(values = color_palette) + 
   ggpubr::theme_pubr()+ 
-  guides(fill = "none") + 
+  guides(fill = "none") + ylim(c(-3,3)) + 
   labs(title = "Exploration Bonus", x = "Session", y = "φ", fill = "Session")+
-  theme(title =  element_text(size = 17, family = "Averia Serif Libre", face = "bold"),
+  theme(title = default_text.title,
         axis.title.x = default_text,
         axis.title.y = element_text(size = 16, family = "serif")
   ) 
@@ -138,9 +91,9 @@ plot.VSE.eta <- ggplot(data = igt_data.pars, aes(x = session, y = VSE_eta, fill 
   geom_point(position = position_jitterdodge(jitter.width = .5), size = 1.5, alpha = .6) +
   scale_fill_manual(values = color_palette) + 
   ggpubr::theme_pubr()+ 
-  guides(fill = "none") + 
+  guides(fill = "none") + ylim(c(0, 1)) + 
   labs(title = "Exploration Update", x = "Session", y = "η", fill = "Session")+
-  theme(title =  element_text(size = 17, family = "Averia Serif Libre", face = "bold"),
+  theme(title = default_text.title,
         axis.title.x = default_text,
         axis.title.y = element_text(size = 16, family = "serif")
   ) 
@@ -150,10 +103,11 @@ plot.VSE.C <- ggplot(data = igt_data.pars, aes(x = session, y = VSE_C, fill = se
   geom_point(position = position_jitterdodge(jitter.width = .5), size = 1.5, alpha = .6) +
   scale_fill_manual(values = color_palette) + 
   ggpubr::theme_pubr()+ 
-  guides(fill = "none") + 
+  guides(fill = "none") + ylim(c(0, 2)) + 
   labs(title = "Consistency", x = "Session", y = "C", fill = "Session")+
-  theme(title =  element_text(size = 17, family = "Averia Serif Libre", face = "bold"),
-        axis.title.x = default_text, axis.title.y = default_text) 
+  theme(title =  default_text.title,
+        axis.title.x = default_text, 
+        axis.title.y = default_text) 
 
 ggpubr::ggarrange(plot.VSE.theta, plot.VSE.gamma, plot.VSE.phi, plot.VSE.eta, plot.VSE.C, ncol = 3, nrow = 2)
 
@@ -202,7 +156,7 @@ se_index_chart <- ggplot(data = se.table, aes(x = trial_no, y = SE_index)) +
   labs(title = "SE index", x = "Trial", y = "SE index")  +   
   scale_x_continuous(limits = c(1, 100), n.breaks = 20) + 
   scale_y_continuous(limits = c(0, .45), n.breaks = 9) +
-  # geom_hline(yintercept = .05, linetype = "dashed") + 
+  geom_hline(yintercept = .06, linetype = "dashed") +
   ggpubr::theme_pubr() +
   theme(aspect.ratio = .3,
         plot.title   = element_text(size = 18, family = "Averia Serif Libre", face = "bold"),

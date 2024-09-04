@@ -3,3 +3,4 @@ output/model-Rdata/*
 .Rdata
 .RdataTmp
 .Rhistory
+.Rproj.user
