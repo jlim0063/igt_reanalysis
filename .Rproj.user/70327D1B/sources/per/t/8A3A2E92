@@ -1,0 +1,26 @@
+{
+    "id": "8A3A2E92",
+    "path": "G:/My Drive/03 PhD/02 Paper 1 - Theoretical Review/igt_reanalysis/scripts/stan-files/PVL-D_sep_session.stan",
+    "project_path": "scripts/stan-files/PVL-D_sep_session.stan",
+    "type": "stan",
+    "hash": "570022884",
+    "contents": "",
+    "dirty": false,
+    "created": 1727493493389.0,
+    "source_on_save": false,
+    "relative_order": 6,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "54,38",
+        "scrollLine": "23"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1725503911,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1725503911,
+    "read_only": false,
+    "read_only_alternatives": []
+}

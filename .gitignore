@@ -1,6 +1,17 @@
-output/*.csv
-output/model-Rdata/*
-.Rdata
-.RdataTmp
-.Rhistory
-.Rproj.user
+## Large model CSV and Rdata files
+output/*.csv   
+output/model-Rdata/* ## Rdata files
+
+## All Rdata files
+*Rdata*           
+
+## R history and project user files
+.Rhistory            ## R history file
+.Rproj.user          ## RStudio user files
+
+## Unnecessary data files
+data/IGTdata_Ligneul2019.rdata
+
+## Internal result reports
+output/results/contrasts.csv
+output/results/VSE_results.docx

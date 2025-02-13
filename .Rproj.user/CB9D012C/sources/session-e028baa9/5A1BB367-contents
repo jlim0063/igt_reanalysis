@@ -1,5 +1,0 @@
-output/*.csv
-output/model-Rdata/*
-.Rdata
-.RdataTmp
-.Rhistory

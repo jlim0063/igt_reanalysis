@@ -1,0 +1,26 @@
+{
+    "id": "711DE0EF",
+    "path": "G:/My Drive/03 PhD/02 Paper 1 - Theoretical Review/igt_reanalysis/scripts/stan-files/VSE_sep_session.stan",
+    "project_path": "scripts/stan-files/VSE_sep_session.stan",
+    "type": "stan",
+    "hash": "167254510",
+    "contents": "",
+    "dirty": false,
+    "created": 1725408395930.0,
+    "source_on_save": false,
+    "relative_order": 7,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "113,6",
+        "scrollLine": "102"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1725514387,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1725514387832,
+    "read_only": false,
+    "read_only_alternatives": []
+}

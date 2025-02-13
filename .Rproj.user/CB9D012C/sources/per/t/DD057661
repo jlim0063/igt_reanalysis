@@ -1,0 +1,26 @@
+{
+    "id": "DD057661",
+    "path": "G:/My Drive/03 PhD/02 Paper 1 - Theoretical Review/igt_reanalysis/scripts/1b_fit_model_loop.R",
+    "project_path": "scripts/1b_fit_model_loop.R",
+    "type": "r_source",
+    "hash": "801458151",
+    "contents": "",
+    "dirty": false,
+    "created": 1725027119266.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "138,0",
+        "scrollLine": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1725597504,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1725597504756,
+    "read_only": false,
+    "read_only_alternatives": []
+}
