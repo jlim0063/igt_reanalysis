@@ -12,6 +12,8 @@
 ---
 
 ## Data files
+**! NOTE: DATA FILES FOR KILLGORE ET AL. (2007) WILL BE MADE AVAILABLE UPON MANUSCRIPT PUBLICATION.**
+
 All data files are located under `data` subfolder
 
 For real data from Killgore et al. (2007), see `data\actual\Killgore2007_GUM4` 
