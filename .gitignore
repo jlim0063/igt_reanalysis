@@ -9,6 +9,9 @@ output/model-Rdata/* ## Rdata files
 .Rhistory            ## R history file
 .Rproj.user          ## RStudio user files
 
+## Killgore et al (2007) - to be made available after publication
+data/actual/*
+
 ## Unnecessary data files
 data/IGTdata_Ligneul2019.rdata
 
